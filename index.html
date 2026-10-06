@@ -118,8 +118,6 @@ footer.site{padding-block:24px 40px;color:var(--muted);font-size:14px;display:fl
 .curtain b{position:absolute;inset:0;display:grid;place-items:center;font:800 clamp(18px,3vw,28px)/1 var(--display);color:var(--accent-ink);text-transform:uppercase;letter-spacing:.06em}
 .wm{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.1em;margin-bottom:-.1em}
 .wi{display:inline-block;will-change:transform}
-.glow{position:fixed;left:0;top:0;width:520px;height:520px;border-radius:50%;pointer-events:none;z-index:1;background:radial-gradient(circle,rgba(242,193,78,.13),transparent 65%);mix-blend-mode:screen}
-.dot{position:fixed;left:0;top:0;width:10px;height:10px;border-radius:50%;background:var(--accent);pointer-events:none;z-index:70}
 .big-quote .sw{opacity:.18;transition:opacity .15s linear}
 .tile{position:relative}
 .tile::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:radial-gradient(240px circle at var(--x,50%) var(--y,50%),var(--accent),transparent 65%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .25s}
@@ -129,7 +127,6 @@ footer.site{padding-block:24px 40px;color:var(--muted);font-size:14px;display:fl
 .btn:hover{transform:none}
 .ripple{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:rgba(255,255,255,.55);pointer-events:none}
 .final{will-change:clip-path}
-@media (hover:none){.glow,.dot{display:none}}
 
 /* градиентная карточка формы */
 @property --fa{syntax:"<angle>";inherits:false;initial-value:0deg}
@@ -439,17 +436,6 @@ document.querySelectorAll('form[data-lead]').forEach(function(f){
     }
   });
 
-  // 12. свечение и точка за курсором (ПК)
-  if(fine){
-    var g=document.createElement('div');g.className='glow';
-    var d=document.createElement('div');d.className='dot';
-    document.body.append(g,d);
-    animate(g,{x:innerWidth/2-260,y:innerHeight/3-260},{duration:0});
-    addEventListener('pointermove',function(e){
-      animate(d,{x:e.clientX-5,y:e.clientY-5},{type:'spring',stiffness:700,damping:40});
-      animate(g,{x:e.clientX-260,y:e.clientY-260},{type:'spring',stiffness:60,damping:20});
-    });
-  }
 
   // 13. липкая кнопка на телефоне появляется после первого экрана
   var st=$('.sticky');
