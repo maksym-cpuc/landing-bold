@@ -130,6 +130,23 @@ footer.site{padding-block:24px 40px;color:var(--muted);font-size:14px;display:fl
 .ripple{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:rgba(255,255,255,.55);pointer-events:none}
 .final{will-change:clip-path}
 @media (hover:none){.glow,.dot{display:none}}
+
+/* градиентная карточка формы */
+@property --fa{syntax:"<angle>";inherits:false;initial-value:0deg}
+form.lead,.ok{
+  border:3px solid transparent;
+  background:
+    radial-gradient(120% 80% at 100% 0%,rgba(242,193,78,.38),transparent 55%) padding-box,
+    radial-gradient(90% 70% at 0% 100%,rgba(232,110,60,.32),transparent 60%) padding-box,
+    linear-gradient(160deg,#1C2230,#0E1117) padding-box,
+    conic-gradient(from var(--fa),#FFFFFF,#E86E3C 12%,#7A2E8E 24%,#11141B 38%,#11141B 62%,#7A2E8E 76%,#E86E3C 88%,#FFFFFF) border-box;
+  animation:formspin 6s linear infinite;
+  box-shadow:0 30px 60px -30px rgba(0,0,0,.6);
+}
+@keyframes formspin{to{--fa:360deg}}
+form.lead input[type=tel],form.lead input[type=text]{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+form.lead input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(242,193,78,.25)}
+@media (prefers-reduced-motion:reduce){form.lead,.ok{animation:none}}
 </style>
 </head>
 <body>
