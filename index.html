@@ -110,9 +110,30 @@ footer.site{padding-block:24px 40px;color:var(--muted);font-size:14px;display:fl
 .sticky{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:rgba(17,20,27,.92);backdrop-filter:blur(8px);border-top:1px solid var(--line);z-index:10}
 .sticky .btn{width:100%}
 @media (min-width:900px){.sticky{display:none}}
+
+/* ---- Вау-слой ---- */
+.progress{position:fixed;top:0;left:0;right:0;height:3px;background:var(--accent);transform-origin:0 50%;transform:scaleX(0);z-index:60}
+.curtain{position:fixed;inset:0;z-index:100;display:flex;pointer-events:none}
+.curtain i{flex:1;background:var(--accent);display:block}
+.curtain b{position:absolute;inset:0;display:grid;place-items:center;font:800 clamp(18px,3vw,28px)/1 var(--display);color:var(--accent-ink);text-transform:uppercase;letter-spacing:.06em}
+.wm{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.1em;margin-bottom:-.1em}
+.wi{display:inline-block;will-change:transform}
+.glow{position:fixed;left:0;top:0;width:520px;height:520px;border-radius:50%;pointer-events:none;z-index:1;background:radial-gradient(circle,rgba(242,193,78,.13),transparent 65%);mix-blend-mode:screen}
+.dot{position:fixed;left:0;top:0;width:10px;height:10px;border-radius:50%;background:var(--accent);pointer-events:none;z-index:70}
+.big-quote .sw{opacity:.18;transition:opacity .15s linear}
+.tile{position:relative}
+.tile::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:radial-gradient(240px circle at var(--x,50%) var(--y,50%),var(--accent),transparent 65%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .25s}
+.tiles:hover .tile::before{opacity:1}
+.case{transform-style:preserve-3d;will-change:transform}
+.btn{position:relative;overflow:hidden}
+.btn:hover{transform:none}
+.ripple{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:rgba(255,255,255,.55);pointer-events:none}
+.final{will-change:clip-path}
+@media (hover:none){.glow,.dot{display:none}}
 </style>
 </head>
 <body>
+<div class="progress" aria-hidden="true"></div>
 
 
 <div class="draft">Черновик · вариант 3 из 4 «Контрастный» · название, цифры, контакты и отзывы — заглушки</div>
@@ -259,5 +280,173 @@ document.querySelectorAll('form[data-lead]').forEach(function(f){
 });
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/motion@11.18.2/dist/motion.js"></script>
+<script>
+(function(){
+  var M=window.Motion;
+  if(!M||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var animate=M.animate,stagger=M.stagger,inView=M.inView,scroll=M.scroll;
+  var ease=[0.22,1,0.36,1], fine=matchMedia('(hover: hover)').matches;
+  var $=function(s,r){return (r||document).querySelector(s)}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+
+  // разбивка текста на слова в «окошках»
+  function split(el){
+    var out=[];
+    Array.prototype.slice.call(el.childNodes).forEach(function(n){
+      var hl=n.nodeType===1;
+      n.textContent.split(/(\s+)/).forEach(function(t){
+        if(!t)return;
+        out.push(/^\s+$/.test(t)?' ':'<span class="wm"><span class="wi'+(hl?' hl':'')+'">'+t+'</span></span>');
+      });
+    });
+    el.innerHTML=out.join('');
+    return $$('.wi',el);
+  }
+  // «дешифровка» текста
+  var CH='АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЭЮЯ0123456789#%';
+  function scramble(el,dur){
+    var fin=el.dataset.fin||(el.dataset.fin=el.textContent);
+    animate(0,1,{duration:dur||0.9,ease:'linear',onUpdate:function(p){
+      var n=Math.floor(p*fin.length);
+      el.textContent=fin.slice(0,n)+fin.slice(n).replace(/\S/g,function(){return CH[Math.random()*CH.length|0]});
+    },onComplete:function(){el.textContent=fin}});
+  }
+
+  // 1. шторка на входе
+  var cur=document.createElement('div');cur.className='curtain';cur.setAttribute('aria-hidden','true');
+  cur.innerHTML='<i></i><i></i><i></i><i></i><i></i><i></i><b>Название НКО</b>';
+  document.body.appendChild(cur);
+  animate($('b',cur),{opacity:[1,0]},{duration:0.25,delay:0.35});
+  animate($$('i',cur),{y:['0%','-100%']},{delay:stagger(0.06,{startDelay:0.4}),duration:0.7,ease:[0.76,0,0.24,1]})
+    .then(function(){cur.remove()});
+
+  // 2. герой
+  var words=split($('.hero h1'));
+  animate(words,{y:['110%','0%'],rotate:[6,0]},{delay:stagger(0.08,{startDelay:0.75}),duration:0.9,ease:ease});
+  var acc=$$('.hero h1 .wi.hl');
+  setTimeout(function(){acc.forEach(function(w){scramble(w,0.8)})},1300);
+  animate('.hero .lead, .hero .row',{opacity:[0,1],y:[24,0]},{delay:stagger(0.15,{startDelay:1.2}),duration:0.8,ease:ease});
+  animate('header.top',{opacity:[0,1],y:[-20,0]},{delay:0.9,duration:0.6});
+
+  // 3. прогресс чтения
+  scroll(animate('.progress',{scaleX:[0,1]},{ease:'linear'}));
+
+  // 4. бегущая строка реагирует на скорость и направление прокрутки
+  var track=$('.ticker .track');
+  if(track){
+    track.style.animation='none';
+    var x=0,dir=1,lastY=scrollY,vel=0;
+    (function tick(){
+      var dy=scrollY-lastY;lastY=scrollY;
+      if(dy)dir=dy>0?1:-1;
+      vel+=(Math.min(Math.abs(dy),80)*0.35-vel)*0.08;
+      x-=(0.7+vel)*dir;
+      var w=track.scrollWidth/2;
+      if(x<=-w)x+=w;if(x>0)x-=w;
+      track.style.transform='translateX('+x+'px)';
+      requestAnimationFrame(tick);
+    })();
+  }
+
+  // 5. заголовки разделов и кикеры
+  $$('.sec').forEach(function(sec){
+    var k=$('.kicker',sec),h=$('h2',sec);
+    var hw=h?split(h):[];
+    var rest=$$(':scope > *:not(.kicker):not(h2)',sec);
+    animate(hw,{y:'110%'},{duration:0});
+    animate(rest,{opacity:0,y:40},{duration:0});
+    inView(sec,function(){
+      if(k)scramble(k,0.7);
+      animate(hw,{y:['110%','0%']},{delay:stagger(0.06),duration:0.85,ease:ease});
+      animate(rest,{opacity:1,y:0},{delay:stagger(0.1,{startDelay:0.25}),duration:0.8,ease:ease});
+    },{amount:0.15});
+  });
+
+  // 6. цитата подсвечивается словами по мере прокрутки
+  $$('.big-quote').forEach(function(q){
+    q.innerHTML=q.textContent.trim().split(/\s+/).map(function(w){return '<span class="sw">'+w+'</span>'}).join(' ');
+    var ws=$$('.sw',q),N=ws.length;
+    scroll(function(p){ws.forEach(function(w,i){w.style.opacity=Math.max(.18,Math.min(1,p*N*1.15-i+1))})},{target:q,offset:['start 90%','end 45%']});
+  });
+
+  // 7. карточки «Знакомо?»: номера дешифруются, карточки наклоняются за курсором
+  $$('.cases').forEach(function(c){
+    var cards=$$('.case',c);
+    animate(cards,{opacity:0,y:60,rotate:4},{duration:0});
+    inView(c,function(){
+      animate(cards,{opacity:1,y:0,rotate:0},{delay:stagger(0.12),type:'spring',bounce:0.3,duration:0.9});
+      cards.forEach(function(cd,i){setTimeout(function(){scramble($('b',cd),0.6)},200+i*120)});
+    },{amount:0.3});
+    if(fine)cards.forEach(function(cd){
+      cd.addEventListener('pointermove',function(e){
+        var r=cd.getBoundingClientRect(),px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;
+        animate(cd,{rotateY:px*14,rotateX:-py*14,transformPerspective:700},{duration:0.25});
+      });
+      cd.addEventListener('pointerleave',function(){animate(cd,{rotateX:0,rotateY:0},{type:'spring',bounce:0.45})});
+    });
+  });
+
+  // 8. плитки: светящаяся рамка за курсором
+  $$('.tiles').forEach(function(t){
+    t.addEventListener('pointermove',function(e){
+      $$('.tile',t).forEach(function(tl){var r=tl.getBoundingClientRect();tl.style.setProperty('--x',(e.clientX-r.left)+'px');tl.style.setProperty('--y',(e.clientY-r.top)+'px')});
+    });
+  });
+
+  // 9. цифры дешифруются
+  $$('.stats').forEach(function(st){inView(st,function(){$$('b',st).forEach(function(b,i){setTimeout(function(){scramble(b,1)},i*150)})},{amount:0.4})});
+
+  // 10. финальный блок раскрывается
+  var fin=$('.final');
+  if(fin){
+    var fh=split($('h2',fin));
+    animate(fin,{clipPath:'inset(12% 8% 12% 8% round 40px)'},{duration:0});
+    animate(fh,{y:'110%'},{duration:0});
+    inView(fin,function(){
+      animate(fin,{clipPath:'inset(0% 0% 0% 0% round 8px)'},{duration:1.1,ease:ease});
+      animate(fh,{y:['110%','0%']},{delay:stagger(0.08,{startDelay:0.35}),duration:0.9,ease:ease});
+    },{amount:0.2});
+  }
+
+  // 11. кнопки: «волна» от нажатия и магнит на ПК
+  $$('.btn').forEach(function(b){
+    b.addEventListener('pointerdown',function(e){
+      var r=b.getBoundingClientRect(),s=document.createElement('span');
+      s.className='ripple';s.style.left=(e.clientX-r.left)+'px';s.style.top=(e.clientY-r.top)+'px';
+      b.appendChild(s);
+      animate(s,{scale:[0,Math.max(r.width,r.height)/12],opacity:[.6,0]},{duration:0.7,ease:'ease-out'}).then(function(){s.remove()});
+    });
+    if(fine){
+      b.addEventListener('pointermove',function(e){var r=b.getBoundingClientRect();animate(b,{x:(e.clientX-r.left-r.width/2)*0.25,y:(e.clientY-r.top-r.height/2)*0.35},{duration:0.3})});
+      b.addEventListener('pointerleave',function(){animate(b,{x:0,y:0},{type:'spring',bounce:0.55,duration:0.7})});
+    }
+  });
+
+  // 12. свечение и точка за курсором (ПК)
+  if(fine){
+    var g=document.createElement('div');g.className='glow';
+    var d=document.createElement('div');d.className='dot';
+    document.body.append(g,d);
+    animate(g,{x:innerWidth/2-260,y:innerHeight/3-260},{duration:0});
+    addEventListener('pointermove',function(e){
+      animate(d,{x:e.clientX-5,y:e.clientY-5},{type:'spring',stiffness:700,damping:40});
+      animate(g,{x:e.clientX-260,y:e.clientY-260},{type:'spring',stiffness:60,damping:20});
+    });
+  }
+
+  // 13. липкая кнопка на телефоне появляется после первого экрана
+  var st=$('.sticky');
+  if(st&&!fine){
+    animate(st,{y:'120%'},{duration:0});
+    inView('.hero',function(){animate(st,{y:'120%'},{duration:0.3});return function(){animate(st,{y:'0%'},{type:'spring',bounce:0.3,duration:0.6})}});
+  }
+
+  // 14. «Готово» после формы
+  new MutationObserver(function(){
+    var ok=$('.ok:not([hidden])');
+    if(ok&&!ok.dataset.shown){ok.dataset.shown=1;animate(ok,{opacity:[0,1],scale:[0.85,1],rotate:[-2,0]},{type:'spring',bounce:0.45,duration:0.8});scramble($('b',ok),0.8)}
+  }).observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden']});
+})();
+</script>
 </body>
 </html>
